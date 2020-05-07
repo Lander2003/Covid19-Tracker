@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito+Sans&amp;display=swap" rel="stylesheet">
+    <title>Corona Tracker</title>
+  </head>
+  <body>
+
+<nav id="navigation">
+  <ul class="container">
+    <li class="logo"><a href="#">COVID-19 Tracker</a></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="#">Contribute</a></li>
+  </ul>
+</nav>
+
+<main id="showcase">
+  <div class="container flex-container">
+    <h1>Search a country</h1>
+    <input id="checkboxSpeech" type="checkbox" name="" value=""> Speech Synthesis
+    <p style="color: red" id="error"></p>
+    <input placeholder="Enter a country.." id="country" list="countries" type="text" name="">
+    <datalist id="countries" class="">
+      <option>Global</option>
+    </datalist>
+    <button type="button" name="button" id="btn">Search</button>
+    <div id="content">
+      <div class="country-search">
+        <div class="">
+          <h1><span class="countryName">Global</span></h1>
+          <h2>Confirmed cases: <span style="color:#ff9800" id="confirmed"></span></h2>
+          <h2>Recovered: <span style="color:#23bf23" id="recovered"></span></h2>
+          <h2>Deaths: <span style="color:#ff1616" id="deaths"></span></h2>
+        </div>
+        <div class="canvas">
+          <h1>Chart for <span class="countryName"></span></h1>
+          <canvas id="myChart" ></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="container">
+      <p>&copy; Copyright 2020 <a href="https://github.com/Lander2003">Luka Susha</a> </p>
+      <p>Api used: <a href="https://github.com/mathdroid/covid-19-api">Mathdroid</a></p>
+    </div>
+  </footer>
+</main>
+
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.js" charset="utf-8"></script>
+ <script src="index.js" charset="utf-8"></script>
+ <script type="text/javascript">
+
+
+
+
+ </script>
+  </body>
+</html>
