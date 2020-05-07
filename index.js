@@ -126,7 +126,7 @@ function robotSpeak(country, confirmed, recovered, deaths){
 btn.addEventListener("click", function() {
   if (input.value === "") error.textContent = "No country specified!";
   else {
-    error.textContent = null;
+    error.textContent = "";
     getData(input.value);
     globalData(input.value);
     covidChart.destroy();
