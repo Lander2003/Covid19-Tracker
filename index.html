@@ -23,11 +23,18 @@
     <h1>Search a country</h1>
     <input id="checkboxSpeech" type="checkbox" name="" value=""> Speech Synthesis
     <p style="color: red" id="error"></p>
-    <input placeholder="Enter a country.." id="country" list="countries" type="text" name="">
-    <datalist id="countries" class="">
-      <option>Global</option>
-    </datalist>
-    <button type="button" name="button" id="btn">Search</button>
+
+<div class="dropdown">
+  <input onkeyup="filterButtons()" onclick="showCountries()" placeholder="Enter a country.." id="country" list="countries" type="text" name="">
+  <div style="display: none" class="dropdown-items">
+
+  </div>
+  <button type="button" name="button" id="btn">Search</button>
+</div>
+
+
+
+
     <div id="content">
       <div class="country-search">
         <div class="">
