@@ -112,7 +112,7 @@ async function getData(country) {
     robotSpeak(country, countryData[0], countryData[2], countryData[1]);
     }
   } catch {
-    error.textContent = "Country doesnt exist!";
+    error.textContent = "";
   }
 }
 
