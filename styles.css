@@ -119,6 +119,31 @@ a{
   border: solid 2px #07f;
 }
 
+#showcase .dropdown{
+  position: relative;
+}
+
+#showcase .dropdown .dropdown-items{
+  position: absolute;
+  box-shadow: 1px 1px 6px 4px #d0d0d0;
+  height: 350px;
+  width: 250px;
+  overflow-y: scroll;
+  background-color: white;
+}
+
+#showcase .dropdown .dropdown-items a{
+  display: block;
+  padding: 10px;
+  cursor: pointer;
+  transition: .1s color, .1s background-color;
+}
+
+#showcase .dropdown .dropdown-items a:hover{
+  background-color: #0077ff;
+  color: white;
+}
+
 #showcase .country-search{
   margin-top: 25px;
   padding: 25px;
