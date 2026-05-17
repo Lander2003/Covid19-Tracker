@@ -9,115 +9,145 @@ const dropdownItems = document.querySelector(".dropdown-items");
 const error = document.querySelector("#error");
 let myChart = document.getElementById("myChart");
 
-let covidChart = new Chart(myChart);
+let covidChart = null;
 
-function showCountries(){
-  if(dropdownItems.style.display === "none"){
-    dropdownItems.style.display = "block";
-  } else {
-    dropdownItems.style.display = "none";
+const API_BASE = "https://disease.sh/v3/covid-19";
+
+function normalizeCountry(country) {
+  if (!country) return "all";
+
+  const value = country.trim();
+
+  if (value.toLowerCase() === "global" || value.toLowerCase() === "world") {
+    return "all";
   }
 
+  if (value.toLowerCase() === "macedonia") {
+    return "North Macedonia";
+  }
+
+  return value;
 }
 
-async function globalData(country) {
-  let url = "https://covid19.mathdro.id/api/";
-  let countries = "countries/";
-  if (country == "World") country = "Global";
-  if (country === "Macedonia") country = "North Macedonia";
-  if (country !== "Global") {
-  url += countries + country;
-  }
-  await (await fetch(url)).json().then(data => {
-    console.log(status);
-    let config = {
-      type: "bar",
-      data: {
-        labels: [country],
-        datasets: [
-          {
-            label: "Confirmed Cases",
-            data: [data.confirmed.value],
-            backgroundColor: "#ff980085",
-            borderWidth: "2",
-            borderColor: "#ff9800"
-          },
-          {
-            label: "Recovered Cases",
-            data: [data.recovered.value],
-            backgroundColor: "#23bf2373",
-            borderWidth: "2",
-            borderColor: "#23bf23"
-          },
-          {
-            label: "Deaths",
-            data: [data.deaths.value],
-            backgroundColor: "#ff161669",
-            borderWidth: "2",
-            borderColor: "#ff1616"
-          }
+function showCountries() {
+  dropdownItems.style.display =
+    dropdownItems.style.display === "none" ? "block" : "none";
+}
 
-        ]
-      }
-    };
-    covidChart = new Chart(myChart, config);
+async function fetchCovidData(country) {
+  const normalizedCountry = normalizeCountry(country);
+
+  const url =
+    normalizedCountry === "all"
+      ? `${API_BASE}/all`
+      : `${API_BASE}/countries/${encodeURIComponent(normalizedCountry)}?strict=true`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Country not found or API unavailable");
+  }
+
+  const data = await response.json();
+
+  return {
+    country: normalizedCountry === "all" ? "Global" : data.country,
+    confirmed: data.cases ?? 0,
+    deaths: data.deaths ?? 0,
+    recovered: data.recovered ?? 0
+  };
+}
+
+function showData(confirmed, deaths, recovered, country) {
+  con.innerHTML = confirmed.toLocaleString();
+  dea.innerHTML = deaths.toLocaleString();
+  rec.innerHTML = recovered.toLocaleString();
+
+  for (let i = 0; i < countryName.length; i++) {
+    countryName[i].innerHTML = country;
+  }
+}
+
+function renderChart(data) {
+  if (covidChart) {
+    covidChart.destroy();
+  }
+
+  covidChart = new Chart(myChart, {
+    type: "bar",
+    data: {
+      labels: [data.country],
+      datasets: [
+        {
+          label: "Confirmed Cases",
+          data: [data.confirmed],
+          backgroundColor: "#ff980085",
+          borderWidth: 2,
+          borderColor: "#ff9800"
+        },
+        {
+          label: "Recovered Cases",
+          data: [data.recovered],
+          backgroundColor: "#23bf2373",
+          borderWidth: 2,
+          borderColor: "#23bf23"
+        },
+        {
+          label: "Deaths",
+          data: [data.deaths],
+          backgroundColor: "#ff161669",
+          borderWidth: 2,
+          borderColor: "#ff1616"
+        }
+      ]
+    }
   });
-}
-
-function showData(data1, data2, data3, data4) {
-  con.innerHTML = data1;
-  dea.innerHTML = data2;
-  rec.innerHTML = data3;
-  for(let i = 0; i<2; i++){
-    countryName[i].innerHTML = data4;
-  }
-}
-
-async function countryList() {
-  let data = await fetch("https://covid19.mathdro.id/api/countries/");
-  let new_data = await data.json();
-  for (let i = 0; i < new_data.countries.length; i++) {
-    const countrySpan = document.createElement("SPAN");
-    const countryTag = document.createElement("A");
-    const countryName = document.createTextNode(new_data.countries[i].name);
-    countrySpan.appendChild(countryName);
-    countryTag.appendChild(countrySpan);
-    dropdownItems.appendChild(countryTag);
-  }
 }
 
 async function getData(country) {
   try {
-    let data;
-    if (country === "Global") country = "global";
-    if (country === "World") country = "global";
-    if (country === "global") {
-      data = await fetch("https://covid19.mathdro.id/api");
-    } else {
-      if (country === "Macedonia") {
-        country = "North Macedonia";
-      }
-      data = await fetch("https://covid19.mathdro.id/api/countries/" + country);
-    }
-    let new_data = await data.json();
-    let countryData = [
-      new_data.confirmed.value,
-      new_data.deaths.value,
-      new_data.recovered.value,
-      country
-    ];
-    showData(countryData[0], countryData[1], countryData[2], country);
-    let checkbox = document.getElementById("checkboxSpeech");
-    if (checkbox.checked === true) {
-    robotSpeak(country, countryData[0], countryData[2], countryData[1]);
-    }
-  } catch {
     error.textContent = "";
+
+    const data = await fetchCovidData(country);
+
+    showData(data.confirmed, data.deaths, data.recovered, data.country);
+    renderChart(data);
+
+    const checkbox = document.getElementById("checkboxSpeech");
+    if (checkbox && checkbox.checked === true) {
+      robotSpeak(data.country, data.confirmed, data.recovered, data.deaths);
+    }
+  } catch (err) {
+    error.textContent = "Could not load data. Check the country name.";
+    console.error(err);
   }
 }
 
-function robotSpeak(country, confirmed, recovered, deaths){
-  let words = [
+async function countryList() {
+  try {
+    const response = await fetch(`${API_BASE}/countries`);
+    const countries = await response.json();
+
+    countries.forEach(item => {
+      const countryTag = document.createElement("a");
+      const countrySpan = document.createElement("span");
+
+      countrySpan.textContent = item.country;
+      countryTag.appendChild(countrySpan);
+      dropdownItems.appendChild(countryTag);
+
+      countryTag.addEventListener("click", function () {
+        input.value = item.country;
+        showCountries();
+      });
+    });
+  } catch (err) {
+    console.error("Could not load country list", err);
+  }
+}
+
+function robotSpeak(country, confirmed, recovered, deaths) {
+  const words = [
     country,
     "Confirmed Cases",
     confirmed,
@@ -126,53 +156,40 @@ function robotSpeak(country, confirmed, recovered, deaths){
     "Death Cases",
     deaths
   ];
-  for (let i = 0; i < 7; i++) {
-    let msg = new SpeechSynthesisUtterance(words[i]);
+
+  words.forEach(word => {
+    const msg = new SpeechSynthesisUtterance(String(word));
     speechSynthesis.speak(msg);
-  }
+  });
 }
 
-btn.addEventListener("click", function(){
-  if (input.value === "") error.textContent = "No country specified!";
-  else {
-    error.textContent = "";
-    getData(input.value);
-    globalData(input.value);
-    covidChart.destroy();
+function filterButtons() {
+  if (dropdownItems.style.display === "none") {
+    showCountries();
   }
-})
 
-let countries;
-function getCountryNames(){
-  let countries = document.querySelectorAll(".dropdown-items a");
-  let filterValue = input.value.toUpperCase();
+  const filterValue = input.value.toUpperCase();
+  const countries = document.querySelectorAll(".dropdown-items a");
 
-  for(let i = 0; i < countries.length; i++){
-      countries[i].addEventListener("click", function(){
-        input.value = countries[i].textContent;
-          showCountries();
-       })
+  countries.forEach(country => {
+    const span = country.getElementsByTagName("span")[0];
+
+    if (span.innerHTML.toUpperCase().indexOf(filterValue) > -1) {
+      country.style.display = "";
+    } else {
+      country.style.display = "none";
+    }
+  });
+}
+
+btn.addEventListener("click", function () {
+  if (input.value.trim() === "") {
+    error.textContent = "No country specified!";
+    return;
   }
-    }
 
-    function filterButtons(){
-      if(dropdownItems.style.display === "none"){
-        showCountries();
-      }
-      let filterValue = input.value.toUpperCase();
-      let countries = document.querySelectorAll(".dropdown-items a");
-
-      for(let i = 0; i<countries.length; i++){
-        let a = countries[i].getElementsByTagName("span")[0];
-        if(a.innerHTML.toUpperCase().indexOf(filterValue) > -1){
-          countries[i].style.display = "";
-        }else{
-          countries[i].style.display = "none";
-        }
-      }
-    }
+  getData(input.value);
+});
 
 countryList();
 getData("global");
-globalData("Global");
-setTimeout(getCountryNames, 1000);
